@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HireMeAI | AI Candidate Chat</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         :root {
             --bg-color: #0f111a;
@@ -99,6 +100,31 @@
             background-color: var(--ai-msg);
             border: 1px solid var(--border-color);
             border-bottom-left-radius: 0.25rem;
+        }
+        
+        .message-content table {
+            border-collapse: collapse;
+            margin: 10px 0;
+            width: 100%;
+            font-size: 0.9rem;
+        }
+        .message-content th, .message-content td {
+            border: 1px solid var(--border-color);
+            padding: 8px 12px;
+            text-align: left;
+        }
+        .message-content th {
+            background-color: rgba(255, 255, 255, 0.05);
+            font-weight: 600;
+        }
+        .message-content p {
+            margin: 0 0 8px 0;
+        }
+        .message-content p:last-child {
+            margin: 0;
+        }
+        .message-content strong {
+            color: var(--accent);
         }
 
         .input-container {
@@ -266,7 +292,12 @@
             
             const contentDiv = document.createElement('div');
             contentDiv.classList.add('message-content');
-            contentDiv.innerText = text;
+            
+            if (sender === 'ai' && text !== 'Thinking') {
+                contentDiv.innerHTML = marked.parse(text);
+            } else {
+                contentDiv.innerText = text;
+            }
 
             messageDiv.appendChild(contentDiv);
             chatContainer.appendChild(messageDiv);
@@ -306,8 +337,8 @@
 
                 const data = await response.json();
                 
-                // Replace loading text with actual answer
-                loadingMsg.innerText = data.answer;
+                // Replace loading text with parsed markdown answer
+                loadingMsg.innerHTML = marked.parse(data.answer);
                 
             } catch (error) {
                 console.error('Error:', error);
