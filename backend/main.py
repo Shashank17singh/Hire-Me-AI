@@ -162,13 +162,17 @@ def read_pdf(file_path: Path):
 
     return text
 
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+
+# Mount the static directory for CSS/JS if needed later
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
 @app.get("/")
 def home():
-    # resume_text=read_pdf(Path("my_resume.pdf"))
-    # resume=parse_resume(resume_text)
-    return {
-        "message" : "Ye home page hai"
-    }
+    # Serve the frontend UI instead of raw JSON
+    return FileResponse("static/index.html")
+
 # chatgpt.cpom
 #chatgot.com/aceeddferre5e
 
