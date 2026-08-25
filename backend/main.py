@@ -46,12 +46,23 @@ class ChatRequest(BaseModel):
 
 def ask_candidate(question: str, resume: Resume):
 
+    # Load additional context from the live portfolio if it exists
+    portfolio_context = ""
+    portfolio_file = Path("portfolio_context.txt")
+    if portfolio_file.exists():
+        with open(portfolio_file, "r", encoding="utf-8") as f:
+            portfolio_context = f.read()
+
     system_prompt = f"""
 You are an AI assistant representing a job candidate.
 
-Below is everything you know about the candidate.
+Below is everything you know about the candidate from their parsed resume.
 
 {resume.model_dump_json(indent=2)}
+
+Below is additional context extracted directly from their live portfolio website (including their detailed projects, technical skills, and certifications). Use this information to supplement their resume.
+
+{portfolio_context}
 
 Rules:
 
