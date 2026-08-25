@@ -151,6 +151,22 @@
             transition: background-color 0.2s, transform 0.1s;
         }
 
+        .sync-btn {
+            position: static;
+            width: auto;
+            height: auto;
+            border-radius: 0.5rem;
+            padding: 0.5rem 1rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            background-color: var(--border-color);
+            color: var(--text-color);
+        }
+
+        .sync-btn:hover {
+            background-color: #475569;
+        }
+
         button:hover {
             background-color: #2563eb;
         }
@@ -203,9 +219,19 @@
             <div class="header-title">HireMeAI</div>
             <div class="header-subtitle">Interactive AI Candidate Interview</div>
         </div>
-        <div style="font-size: 0.85rem; color: #64748b; display: flex; align-items: center; gap: 0.5rem;">
-            <span style="display: inline-block; width: 8px; height: 8px; background-color: #10b981; border-radius: 50%;"></span>
-            System Online
+        <div style="font-size: 0.85rem; color: #64748b; display: flex; align-items: center; gap: 1rem;">
+            <button id="sync-btn" class="sync-btn">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px;">
+                    <polyline points="23 4 23 10 17 10"></polyline>
+                    <polyline points="1 20 1 14 7 14"></polyline>
+                    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                </svg>
+                Sync Latest Resume
+            </button>
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <span style="display: inline-block; width: 8px; height: 8px; background-color: #10b981; border-radius: 50%;"></span>
+                System Online
+            </div>
         </div>
     </header>
 
@@ -300,6 +326,28 @@
         userInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 sendMessage();
+            }
+        });
+
+        document.getElementById('sync-btn').addEventListener('click', async (e) => {
+            const btn = e.target.closest('button');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = 'Syncing...';
+            btn.disabled = true;
+
+            try {
+                const response = await fetch('/refresh', { method: 'POST' });
+                if (response.ok) {
+                    addMessage('I have just fetched and read the newest version of your resume from Google Drive! What else would you like to know?', 'ai');
+                } else {
+                    addMessage('Failed to sync resume from Google Drive.', 'ai');
+                }
+            } catch (error) {
+                console.error(error);
+                addMessage('Error connecting to server to sync resume.', 'ai');
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
             }
         });
     </script>

@@ -14,8 +14,40 @@ client = Groq(
     api_key=os.getenv("GROQ_API_KEY")
 )
 
-model = "openai/gpt-oss-120b"
-app=FastAPI()
+from contextlib import asynccontextmanager
+import urllib.request
+import ssl
+
+cached_resume = None
+
+def download_resume():
+    gdrive_id = os.getenv("RESUME_GDRIVE_ID", "1W-dn895-Z8SC5uT160ZejL5Ij28CsVZP")
+    url = f"https://drive.google.com/uc?export=download&id={gdrive_id}"
+    ctx = ssl.create_default_context()
+    ctx.check_hostname = False
+    ctx.verify_mode = ssl.CERT_NONE
+    req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+    print("Downloading latest resume from Google Drive...")
+    try:
+        with urllib.request.urlopen(req, context=ctx) as response, open(Path("my_resume.pdf"), 'wb') as out_file:
+            out_file.write(response.read())
+        print("Download complete.")
+    except Exception as e:
+        print("Failed to download resume:", e)
+
+def refresh_cache():
+    global cached_resume
+    download_resume()
+    resume_text = read_pdf(Path("my_resume.pdf"))
+    cached_resume = parse_resume(resume_text)
+    print("Resume successfully parsed and cached in memory.")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    refresh_cache()
+    yield
+
+app=FastAPI(lifespan=lifespan)
 
 
 
@@ -190,12 +222,18 @@ def home():
 
 @app.post("/chat")
 def chat(request: ChatRequest):
-    resume_text=read_pdf(Path("my_resume.pdf"))
-    resume=parse_resume(resume_text)
-    answer=ask_candidate(request.question, resume)
+    global cached_resume
+    if not cached_resume:
+        refresh_cache()
+    answer=ask_candidate(request.question, cached_resume)
     return {
         "answer": answer
     }
+
+@app.post("/refresh")
+def refresh():
+    refresh_cache()
+    return {"status": "success", "message": "Resume cache has been refreshed from Google Drive!"}
 
 
 
