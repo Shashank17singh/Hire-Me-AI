@@ -17,8 +17,37 @@ client = Groq(
 from contextlib import asynccontextmanager
 import urllib.request
 import ssl
+from html.parser import HTMLParser
 
 cached_resume = None
+cached_portfolio = ""
+
+class TextExtractor(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.text_parts = []
+    def handle_data(self, data):
+        text = data.strip()
+        if text:
+            self.text_parts.append(text)
+    def get_text(self):
+        return "\n".join(self.text_parts)
+
+def download_portfolio():
+    global cached_portfolio
+    url = "https://shashank17singh.github.io"
+    req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+    print("Downloading live portfolio...")
+    try:
+        with urllib.request.urlopen(req) as response:
+            html_bytes = response.read()
+            html_str = html_bytes.decode('utf-8')
+            extractor = TextExtractor()
+            extractor.feed(html_str)
+            cached_portfolio = extractor.get_text()
+        print("Portfolio downloaded and cached.")
+    except Exception as e:
+        print("Failed to download portfolio:", e)
 
 def download_resume():
     gdrive_id = os.getenv("RESUME_GDRIVE_ID", "1W-dn895-Z8SC5uT160ZejL5Ij28CsVZP")
@@ -38,9 +67,10 @@ def download_resume():
 def refresh_cache():
     global cached_resume
     download_resume()
+    download_portfolio()
     resume_text = read_pdf(Path("my_resume.pdf"))
     cached_resume = parse_resume(resume_text)
-    print("Resume successfully parsed and cached in memory.")
+    print("Resume and portfolio successfully parsed and cached in memory.")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -78,12 +108,8 @@ class ChatRequest(BaseModel):
 
 def ask_candidate(question: str, resume: Resume):
 
-    # Load additional context from the live portfolio if it exists
-    portfolio_context = ""
-    portfolio_file = Path("portfolio_context.txt")
-    if portfolio_file.exists():
-        with open(portfolio_file, "r", encoding="utf-8") as f:
-            portfolio_context = f.read()
+    global cached_portfolio
+    portfolio_context = cached_portfolio
 
     system_prompt = f"""
 You are an AI assistant representing a job candidate.
@@ -233,7 +259,7 @@ def chat(request: ChatRequest):
 @app.post("/refresh")
 def refresh():
     refresh_cache()
-    return {"status": "success", "message": "Resume cache has been refreshed from Google Drive!"}
+    return {"status": "success", "message": "Resume and portfolio cache have been refreshed dynamically!"}
 
 
 
