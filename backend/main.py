@@ -72,13 +72,21 @@ def refresh_cache():
     global cached_resume
     download_resume()
     download_portfolio()
-    resume_text = read_pdf(RESUME_PATH)
-    cached_resume = parse_resume(resume_text)
-    print("Resume and portfolio successfully parsed and cached in memory.")
+    
+    if RESUME_PATH.exists():
+        resume_text = read_pdf(RESUME_PATH)
+        cached_resume = parse_resume(resume_text)
+        print("Resume and portfolio successfully parsed and cached in memory.")
+    else:
+        print("WARNING: Resume PDF could not be found or downloaded. AI will start without resume context.")
+        cached_resume = None
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    refresh_cache()
+    try:
+        refresh_cache()
+    except Exception as e:
+        print("ERROR during startup cache refresh:", e)
     yield
 
 app=FastAPI(lifespan=lifespan)
