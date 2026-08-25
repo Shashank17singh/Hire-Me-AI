@@ -22,6 +22,10 @@ from html.parser import HTMLParser
 cached_resume = None
 cached_portfolio = ""
 
+BASE_DIR = Path(__file__).resolve().parent
+STATIC_DIR = BASE_DIR / "static"
+RESUME_PATH = BASE_DIR / "my_resume.pdf"
+
 class TextExtractor(HTMLParser):
     def __init__(self):
         super().__init__()
@@ -58,7 +62,7 @@ def download_resume():
     req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
     print("Downloading latest resume from Google Drive...")
     try:
-        with urllib.request.urlopen(req, context=ctx) as response, open(Path("my_resume.pdf"), 'wb') as out_file:
+        with urllib.request.urlopen(req, context=ctx) as response, open(RESUME_PATH, 'wb') as out_file:
             out_file.write(response.read())
         print("Download complete.")
     except Exception as e:
@@ -68,7 +72,7 @@ def refresh_cache():
     global cached_resume
     download_resume()
     download_portfolio()
-    resume_text = read_pdf(Path("my_resume.pdf"))
+    resume_text = read_pdf(RESUME_PATH)
     cached_resume = parse_resume(resume_text)
     print("Resume and portfolio successfully parsed and cached in memory.")
 
@@ -234,13 +238,13 @@ def read_pdf(file_path: Path):
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 
-# Mount the static directory for CSS/JS if needed later
-app.mount("/static", StaticFiles(directory="static"), name="static")
+# Mount the static directory using the absolute path so it works regardless of CWD
+app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
 @app.get("/")
 def home():
-    # Serve the frontend UI instead of raw JSON
-    return FileResponse("static/index.html")
+    # Serve the frontend UI using absolute path
+    return FileResponse(str(STATIC_DIR / "index.html"))
 
 # chatgpt.cpom
 #chatgot.com/aceeddferre5e
