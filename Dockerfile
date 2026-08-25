@@ -12,8 +12,8 @@ ENV UV_COMPILE_BYTECODE=1
 # Copy dependency files
 COPY pyproject.toml uv.lock ./
 
-# Install dependencies directly into the system environment to keep image size small
-RUN uv sync --frozen --no-dev --system
+# Install dependencies into a virtual environment (.venv)
+RUN uv sync --frozen --no-dev
 
 # Copy the backend source code
 COPY backend ./backend
@@ -23,5 +23,5 @@ COPY main.py ./
 ENV PORT=7860
 EXPOSE $PORT
 
-# Start the application using Uvicorn directly
-CMD ["sh", "-c", "cd backend && uvicorn main:app --host 0.0.0.0 --port ${PORT}"]
+# Start the application using uv run
+CMD ["sh", "-c", "cd backend && uv run uvicorn main:app --host 0.0.0.0 --port ${PORT}"]
