@@ -36,6 +36,10 @@ class TextExtractor(HTMLParser):
     def handle_starttag(self, tag, attrs):
         if tag in ('script', 'style'):
             self._skip = True
+        elif tag == 'a':
+            for name, value in attrs:
+                if name == 'href' and value and value.startswith('http'):
+                    self.text_parts.append(f"(Link: {value})")
     def handle_endtag(self, tag):
         if tag in ('script', 'style'):
             self._skip = False
