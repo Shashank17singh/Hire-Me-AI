@@ -50,55 +50,75 @@ def download_portfolio():
     except Exception as e:
         print("Failed to download portfolio:", e)
 
-def download_resume():
-    gdrive_id = os.getenv("RESUME_GDRIVE_ID", "1W-dn895-Z8SC5uT160ZejL5Ij28CsVZP")
-    print("Downloading latest resume from Google Drive...")
-    try:
-        # Try the newer drive.usercontent.google.com endpoint first (less rate-limited)
-        session = requests.Session()
-        urls_to_try = [
-            f"https://drive.usercontent.google.com/download?id={gdrive_id}&export=download&authuser=0",
-            f"https://drive.google.com/uc?export=download&confirm=t&id={gdrive_id}",
-        ]
-        for url in urls_to_try:
-            try:
-                resp = session.get(url, headers={'User-Agent': 'Mozilla/5.0'}, timeout=30)
-                resp.raise_for_status()
-                if resp.content[:4] == b'%PDF':
-                    with open(RESUME_PATH, 'wb') as f:
-                        f.write(resp.content)
-                    print(f"Download complete ({RESUME_PATH.stat().st_size} bytes).")
-                    return
-            except Exception as e:
-                print(f"URL {url} failed: {e}")
-                continue
-        print("All Google Drive download URLs failed.")
-    except Exception as e:
-        print("Failed to download resume:", e)
+def fetch_resume_from_url(url: str) -> str:
+    """Fetch resume text from any publicly accessible URL (Google Docs, Notion, GitHub raw, etc.)"""
+    resp = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'}, timeout=20)
+    resp.raise_for_status()
+    content_type = resp.headers.get('Content-Type', '')
+    
+    if 'text/html' in content_type:
+        # Google Docs published page, Notion, portfolio, etc.
+        extractor = TextExtractor()
+        extractor.feed(resp.text)
+        return extractor.get_text()
+    elif 'application/pdf' in content_type or resp.content[:4] == b'%PDF':
+        # Direct PDF URL
+        p = RESUME_PATH
+        p.write_bytes(resp.content)
+        return read_pdf(p)
+    else:
+        # Plain text / markdown
+        return resp.text
 
 def refresh_cache():
     global cached_resume
     try:
         download_portfolio()
 
-        # Strategy 1: Use RESUME_TEXT env var set directly on Render dashboard.
-        # This is the most reliable approach since Google Drive blocks cloud provider IPs.
+        # --- Strategy 1: RESUME_URL env var (Google Docs "Publish to web", Notion public page, etc.) ---
+        # This is the recommended approach. It is live-connected: edit your doc, click Sync, done.
+        # Set RESUME_URL on Render to your Google Docs publish link:
+        #   Google Docs -> File -> Share -> Publish to web -> Publish -> copy link
+        resume_url = os.getenv("RESUME_URL", "").strip()
+        if resume_url:
+            print(f"Fetching resume from RESUME_URL: {resume_url}")
+            text = fetch_resume_from_url(resume_url)
+            if text and len(text) > 200:
+                cached_resume = parse_resume(text)
+                print(f"Resume fetched live from URL ({len(text)} chars).")
+                return
+            else:
+                print("WARNING: RESUME_URL returned too little content, trying fallbacks.")
+
+        # --- Strategy 2: Google Drive PDF download (may be blocked on some cloud IPs) ---
+        gdrive_id = os.getenv("RESUME_GDRIVE_ID", "1W-dn895-Z8SC5uT160ZejL5Ij28CsVZP")
+        print("Trying Google Drive download...")
+        session = requests.Session()
+        for url in [
+            f"https://drive.usercontent.google.com/download?id={gdrive_id}&export=download&authuser=0",
+            f"https://drive.google.com/uc?export=download&confirm=t&id={gdrive_id}",
+        ]:
+            try:
+                resp = session.get(url, headers={'User-Agent': 'Mozilla/5.0'}, timeout=30)
+                resp.raise_for_status()
+                if resp.content[:4] == b'%PDF':
+                    RESUME_PATH.write_bytes(resp.content)
+                    text = read_pdf(RESUME_PATH)
+                    cached_resume = parse_resume(text)
+                    print(f"Resume fetched from Google Drive ({len(text)} chars).")
+                    return
+            except Exception as e:
+                print(f"Google Drive URL failed: {e}")
+
+        # --- Strategy 3: RESUME_TEXT env var (static fallback, set manually on Render) ---
         resume_text_env = os.getenv("RESUME_TEXT", "").strip()
         if resume_text_env:
-            print("Using RESUME_TEXT from environment variable.")
+            print("Using RESUME_TEXT fallback from environment variable.")
             cached_resume = parse_resume(resume_text_env)
-            print("Resume parsed from env var successfully.")
             return
 
-        # Strategy 2: Try downloading from Google Drive (may be blocked on cloud hosting)
-        download_resume()
-        if RESUME_PATH.exists() and RESUME_PATH.stat().st_size > 1000:
-            resume_text = read_pdf(RESUME_PATH)
-            cached_resume = parse_resume(resume_text)
-            print("Resume and portfolio successfully parsed and cached from Google Drive.")
-        else:
-            print("WARNING: Could not fetch resume from either env var or Google Drive.")
-            cached_resume = None
+        print("WARNING: All resume sources failed. AI will respond without resume context.")
+        cached_resume = None
     except Exception as e:
         print(f"Error during refresh_cache: {e}")
         cached_resume = None
