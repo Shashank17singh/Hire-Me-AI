@@ -29,10 +29,18 @@ class TextExtractor(HTMLParser):
     def __init__(self):
         super().__init__()
         self.text_parts = []
+        self._skip = False
+    def handle_starttag(self, tag, attrs):
+        if tag in ('script', 'style'):
+            self._skip = True
+    def handle_endtag(self, tag):
+        if tag in ('script', 'style'):
+            self._skip = False
     def handle_data(self, data):
-        text = data.strip()
-        if text:
-            self.text_parts.append(text)
+        if not self._skip:
+            text = data.strip()
+            if text:
+                self.text_parts.append(text)
     def get_text(self):
         return "\n".join(self.text_parts)
 
