@@ -1,4 +1,4 @@
-# HireMeAI
+# Hire-Me-AI
 
 A FastAPI backend that parses a PDF resume into structured data and lets HR
 chat with an AI that represents the candidate - grounded only in what the
@@ -79,7 +79,7 @@ graph TD
 ##  Project Structure
 
 ```
-HireMeAI/
+Hire-Me-AI/
 ├── backend/
 │   ├── main.py          # FastAPI app - resume parsing + /chat endpoint
 │   └── my_resume.pdf    # Drop your resume here
@@ -101,8 +101,8 @@ HireMeAI/
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/Shashank17singh/HireMeAI.git
-cd HireMeAI
+git clone https://github.com/Shashank17singh/Hire-Me-AI.git
+cd Hire-Me-AI
 ```
 
 ### 2. Install dependencies
