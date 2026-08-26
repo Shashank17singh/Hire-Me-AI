@@ -70,15 +70,20 @@ def download_resume():
 
 def refresh_cache():
     global cached_resume
-    download_resume()
-    download_portfolio()
-    
-    if RESUME_PATH.exists():
-        resume_text = read_pdf(RESUME_PATH)
-        cached_resume = parse_resume(resume_text)
-        print("Resume and portfolio successfully parsed and cached in memory.")
-    else:
-        print("WARNING: Resume PDF could not be found or downloaded. AI will start without resume context.")
+    try:
+        download_resume()
+        download_portfolio()
+        
+        # Make sure the file exists and is reasonably sized (Google Drive error pages are small, real PDFs are larger)
+        if RESUME_PATH.exists() and RESUME_PATH.stat().st_size > 1000:
+            resume_text = read_pdf(RESUME_PATH)
+            cached_resume = parse_resume(resume_text)
+            print("Resume and portfolio successfully parsed and cached in memory.")
+        else:
+            print("WARNING: Resume PDF could not be found or is an invalid file. AI will start without resume context.")
+            cached_resume = None
+    except Exception as e:
+        print(f"Error during refresh_cache: {e}")
         cached_resume = None
 
 @asynccontextmanager
@@ -263,14 +268,24 @@ def chat(request: ChatRequest):
     global cached_resume
     if not cached_resume:
         refresh_cache()
+        
+    if not cached_resume:
+        return {
+            "answer": "Sorry, I couldn't access my resume and portfolio context right now (Google Drive sync failed). Please try again in a few minutes!"
+        }
+        
     answer=ask_candidate(request.question, cached_resume)
     return {
         "answer": answer
     }
 
+from fastapi import HTTPException
+
 @app.post("/refresh")
 def refresh():
     refresh_cache()
+    if not cached_resume:
+        raise HTTPException(status_code=500, detail="Failed to parse or download resume.")
     return {"status": "success", "message": "Resume and portfolio cache have been refreshed dynamically!"}
 
 
