@@ -14,7 +14,7 @@ client = Groq(
     api_key=os.getenv("GROQ_API_KEY")
 )
 
-model = "mixtral-8x7b-32768"
+model = "openai/gpt-oss-20b"
 
 
 from contextlib import asynccontextmanager
