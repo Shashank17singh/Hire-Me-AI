@@ -369,9 +369,9 @@
             try {
                 const response = await fetch('/refresh', { method: 'POST' });
                 if (response.ok) {
-                    addMessage('I have just fetched and read the newest version of your resume from Google Drive! What else would you like to know?', 'ai');
+                    addMessage('I have just fetched and read the newest version of your resume from the live URL! What else would you like to know?', 'ai');
                 } else {
-                    addMessage('Failed to sync resume from Google Drive.', 'ai');
+                    addMessage('Failed to sync resume from live URL.', 'ai');
                 }
             } catch (error) {
                 console.error(error);

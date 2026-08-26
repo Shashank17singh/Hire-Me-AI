@@ -87,7 +87,7 @@ def refresh_cache():
         # This is the recommended approach. It is live-connected: edit your doc, click Sync, done.
         # Set RESUME_URL on Render to your Google Docs publish link:
         #   Google Docs -> File -> Share -> Publish to web -> Publish -> copy link
-        resume_url = os.getenv("RESUME_URL", "").strip()
+        resume_url = os.getenv("RESUME_URL", "https://docs.google.com/document/d/e/2PACX-1vThRffUcE83s7RNij3h7XpNTYpu2Q90xxncdNfk6-SFcPCWR4lNRG1TeBR9-ZExXw/pub").strip()
         if resume_url:
             print(f"Fetching resume from RESUME_URL: {resume_url}")
             text = fetch_resume_from_url(resume_url)
@@ -316,7 +316,7 @@ def chat(request: ChatRequest):
         
     if not cached_resume:
         return {
-            "answer": "Sorry, I couldn't access my resume and portfolio context right now (Google Drive sync failed). Please try again in a few minutes!"
+            "answer": "Sorry, I couldn't access my resume and portfolio context right now (Live sync failed). Please try again in a few minutes!"
         }
         
     answer=ask_candidate(request.question, cached_resume)
