@@ -1,7 +1,7 @@
 # HireMeAI
 
 A FastAPI backend that parses a PDF resume into structured data and lets HR
-chat with an AI that represents the candidate — grounded only in what the
+chat with an AI that represents the candidate - grounded only in what the
 resume actually says.
 
 ```
@@ -20,7 +20,7 @@ parsed resume.
 | Layer | Choice |
 |---|---|
 | API | `FastAPI` + `Uvicorn` |
-| LLM | `Groq` — `openai/gpt-oss-120b` |
+| LLM | `Groq` - `openai/gpt-oss-120b` |
 | Schema Validation | `Pydantic` |
 | PDF Parsing | `pypdf` |
 | DOCX Parsing | `python-docx` |
@@ -57,7 +57,7 @@ graph TD
 |---|---|
 |  **PDF + DOCX Support** | Extracts raw text from any standard resume format |
 |  **Schema-Driven Parsing** | Resume is parsed into a fixed Pydantic schema regardless of section headings or formatting |
-|  **Candidate AI** | The LLM answers as the candidate — professional, fact-bound, no invention |
+|  **Candidate AI** | The LLM answers as the candidate - professional, fact-bound, no invention |
 |  **No Hallucination Guard** | If information is missing from the resume, the AI says so rather than guessing |
 |  **Groq-Powered** | Fast structured-JSON inference via `openai/gpt-oss-120b` |
 
@@ -68,7 +68,7 @@ graph TD
 | Component | Technology |
 |---|---|
 | API Framework | FastAPI |
-| LLM | Groq — `openai/gpt-oss-120b` |
+| LLM | Groq - `openai/gpt-oss-120b` |
 | Schema Validation | Pydantic |
 | PDF Parsing | pypdf |
 | DOCX Parsing | python-docx |
@@ -81,7 +81,7 @@ graph TD
 ```
 HireMeAI/
 ├── backend/
-│   ├── main.py          # FastAPI app — resume parsing + /chat endpoint
+│   ├── main.py          # FastAPI app - resume parsing + /chat endpoint
 │   └── my_resume.pdf    # Drop your resume here
 ├── main.py              # Entry point
 ├── pyproject.toml
@@ -165,5 +165,5 @@ Ask a question about the candidate.
 
 ##  Known Limitations
 
-- One resume at a time — the server loads and parses the PDF on every `/chat` request. Add caching if you plan to screen in bulk.
+- One resume at a time - the server loads and parses the PDF on every `/chat` request. Add caching if you plan to screen in bulk.
 - Scanned / image-only PDFs with no extractable text will return empty parses; use a text-based PDF.
