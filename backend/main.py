@@ -15,8 +15,7 @@ client = Groq(
 )
 
 from contextlib import asynccontextmanager
-import urllib.request
-import ssl
+import requests
 from html.parser import HTMLParser
 
 cached_resume = None
@@ -40,31 +39,50 @@ class TextExtractor(HTMLParser):
 def download_portfolio():
     global cached_portfolio
     url = "https://shashank17singh.github.io"
-    req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
     print("Downloading live portfolio...")
     try:
-        with urllib.request.urlopen(req) as response:
-            html_bytes = response.read()
-            html_str = html_bytes.decode('utf-8')
-            extractor = TextExtractor()
-            extractor.feed(html_str)
-            cached_portfolio = extractor.get_text()
-        print("Portfolio downloaded and cached.")
+        resp = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'}, timeout=15)
+        resp.raise_for_status()
+        extractor = TextExtractor()
+        extractor.feed(resp.text)
+        cached_portfolio = extractor.get_text()
+        print(f"Portfolio downloaded and cached ({len(cached_portfolio)} chars).")
     except Exception as e:
         print("Failed to download portfolio:", e)
 
 def download_resume():
     gdrive_id = os.getenv("RESUME_GDRIVE_ID", "1W-dn895-Z8SC5uT160ZejL5Ij28CsVZP")
-    url = f"https://drive.google.com/uc?export=download&id={gdrive_id}"
-    ctx = ssl.create_default_context()
-    ctx.check_hostname = False
-    ctx.verify_mode = ssl.CERT_NONE
-    req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
     print("Downloading latest resume from Google Drive...")
     try:
-        with urllib.request.urlopen(req, context=ctx) as response, open(RESUME_PATH, 'wb') as out_file:
-            out_file.write(response.read())
-        print("Download complete.")
+        # Google Drive requires a session with cookies to bypass the virus-scan confirmation page
+        session = requests.Session()
+        # First request — gets the confirmation token cookie
+        url = f"https://drive.google.com/uc?export=download&id={gdrive_id}"
+        resp = session.get(url, headers={'User-Agent': 'Mozilla/5.0'}, timeout=30)
+        
+        # If it's HTML (the confirmation warning page), follow the confirmation link
+        content_type = resp.headers.get('Content-Type', '')
+        if 'text/html' in content_type:
+            # Extract the download warning token from the response
+            token = None
+            for key, value in resp.cookies.items():
+                if 'download_warning' in key or 'download_warn' in key:
+                    token = value
+                    break
+            
+            if token:
+                url = f"https://drive.google.com/uc?export=download&confirm={token}&id={gdrive_id}"
+            else:
+                # Try the direct export URL as a fallback
+                url = f"https://drive.google.com/uc?export=download&confirm=t&id={gdrive_id}"
+            
+            resp = session.get(url, headers={'User-Agent': 'Mozilla/5.0'}, timeout=30)
+        
+        resp.raise_for_status()
+        
+        with open(RESUME_PATH, 'wb') as f:
+            f.write(resp.content)
+        print(f"Download complete ({RESUME_PATH.stat().st_size} bytes).")
     except Exception as e:
         print("Failed to download resume:", e)
 
