@@ -54,51 +54,50 @@ def download_resume():
     gdrive_id = os.getenv("RESUME_GDRIVE_ID", "1W-dn895-Z8SC5uT160ZejL5Ij28CsVZP")
     print("Downloading latest resume from Google Drive...")
     try:
-        # Google Drive requires a session with cookies to bypass the virus-scan confirmation page
+        # Try the newer drive.usercontent.google.com endpoint first (less rate-limited)
         session = requests.Session()
-        # First request — gets the confirmation token cookie
-        url = f"https://drive.google.com/uc?export=download&id={gdrive_id}"
-        resp = session.get(url, headers={'User-Agent': 'Mozilla/5.0'}, timeout=30)
-        
-        # If it's HTML (the confirmation warning page), follow the confirmation link
-        content_type = resp.headers.get('Content-Type', '')
-        if 'text/html' in content_type:
-            # Extract the download warning token from the response
-            token = None
-            for key, value in resp.cookies.items():
-                if 'download_warning' in key or 'download_warn' in key:
-                    token = value
-                    break
-            
-            if token:
-                url = f"https://drive.google.com/uc?export=download&confirm={token}&id={gdrive_id}"
-            else:
-                # Try the direct export URL as a fallback
-                url = f"https://drive.google.com/uc?export=download&confirm=t&id={gdrive_id}"
-            
-            resp = session.get(url, headers={'User-Agent': 'Mozilla/5.0'}, timeout=30)
-        
-        resp.raise_for_status()
-        
-        with open(RESUME_PATH, 'wb') as f:
-            f.write(resp.content)
-        print(f"Download complete ({RESUME_PATH.stat().st_size} bytes).")
+        urls_to_try = [
+            f"https://drive.usercontent.google.com/download?id={gdrive_id}&export=download&authuser=0",
+            f"https://drive.google.com/uc?export=download&confirm=t&id={gdrive_id}",
+        ]
+        for url in urls_to_try:
+            try:
+                resp = session.get(url, headers={'User-Agent': 'Mozilla/5.0'}, timeout=30)
+                resp.raise_for_status()
+                if resp.content[:4] == b'%PDF':
+                    with open(RESUME_PATH, 'wb') as f:
+                        f.write(resp.content)
+                    print(f"Download complete ({RESUME_PATH.stat().st_size} bytes).")
+                    return
+            except Exception as e:
+                print(f"URL {url} failed: {e}")
+                continue
+        print("All Google Drive download URLs failed.")
     except Exception as e:
         print("Failed to download resume:", e)
 
 def refresh_cache():
     global cached_resume
     try:
-        download_resume()
         download_portfolio()
-        
-        # Make sure the file exists and is reasonably sized (Google Drive error pages are small, real PDFs are larger)
+
+        # Strategy 1: Use RESUME_TEXT env var set directly on Render dashboard.
+        # This is the most reliable approach since Google Drive blocks cloud provider IPs.
+        resume_text_env = os.getenv("RESUME_TEXT", "").strip()
+        if resume_text_env:
+            print("Using RESUME_TEXT from environment variable.")
+            cached_resume = parse_resume(resume_text_env)
+            print("Resume parsed from env var successfully.")
+            return
+
+        # Strategy 2: Try downloading from Google Drive (may be blocked on cloud hosting)
+        download_resume()
         if RESUME_PATH.exists() and RESUME_PATH.stat().st_size > 1000:
             resume_text = read_pdf(RESUME_PATH)
             cached_resume = parse_resume(resume_text)
-            print("Resume and portfolio successfully parsed and cached in memory.")
+            print("Resume and portfolio successfully parsed and cached from Google Drive.")
         else:
-            print("WARNING: Resume PDF could not be found or is an invalid file. AI will start without resume context.")
+            print("WARNING: Could not fetch resume from either env var or Google Drive.")
             cached_resume = None
     except Exception as e:
         print(f"Error during refresh_cache: {e}")
