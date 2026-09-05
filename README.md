@@ -20,10 +20,9 @@ parsed resume.
 | Layer | Choice |
 |---|---|
 | API | `FastAPI` + `Uvicorn` |
-| LLM | `Groq` - `openai/gpt-oss-120b` |
+| LLM | `Groq` - `openai/gpt-oss-20b` |
 | Schema Validation | `Pydantic` |
 | PDF Parsing | `pypdf` |
-| DOCX Parsing | `python-docx` |
 
 ---
 
@@ -32,7 +31,7 @@ parsed resume.
 ```mermaid
 graph TD
     subgraph "Resume Ingestion"
-    A[PDF / DOCX Resume] -->|pypdf / python-docx| B(Raw Text)
+    A[PDF / Web Resume] -->|pypdf / requests| B(Raw Text)
     B -->|Groq LLM + Pydantic Schema| C[Structured Resume Object]
     end
 
@@ -55,11 +54,11 @@ graph TD
 
 | | |
 |---|---|
-|  **PDF + DOCX Support** | Extracts raw text from any standard resume format |
+|  **PDF + URL Support** | Extracts raw text from local PDFs or public URLs |
 |  **Schema-Driven Parsing** | Resume is parsed into a fixed Pydantic schema regardless of section headings or formatting |
 |  **Candidate AI** | The LLM answers as the candidate - professional, fact-bound, no invention |
-|  **No Hallucination Guard** | If information is missing from the resume, the AI says so rather than guessing |
-|  **Groq-Powered** | Fast structured-JSON inference via `openai/gpt-oss-120b` |
+|  **Live Portfolio Context** | Downloads and caches context directly from the live portfolio website |
+|  **Groq-Powered** | Fast structured-JSON inference via `openai/gpt-oss-20b` |
 
 ---
 
@@ -68,10 +67,9 @@ graph TD
 | Component | Technology |
 |---|---|
 | API Framework | FastAPI |
-| LLM | Groq - `openai/gpt-oss-120b` |
+| LLM | Groq - `openai/gpt-oss-20b` |
 | Schema Validation | Pydantic |
 | PDF Parsing | pypdf |
-| DOCX Parsing | python-docx |
 | Dependency Management | uv |
 
 ---
@@ -120,11 +118,9 @@ cp .env.example .env
 
 ### 4. Add your resume
 
-Drop your PDF or DOCX resume into `backend/` and update the filename reference in `backend/main.py`:
+Drop your PDF resume into `backend/` or rely on the environment variables (`RESUME_URL`, `RESUME_GDRIVE_ID`).
 
-```python
-resume_text = read_pdf(Path("your_resume.pdf"))
-```
+
 
 ### 5. Start the server
 
@@ -165,5 +161,5 @@ Ask a question about the candidate.
 
 ##  Known Limitations
 
-- One resume at a time - the server loads and parses the PDF on every `/chat` request. Add caching if you plan to screen in bulk.
+- The server currently caches the parsed resume globally in memory. If you want to support multiple candidates simultaneously, you'll need session-based caching.
 - Scanned / image-only PDFs with no extractable text will return empty parses; use a text-based PDF.
