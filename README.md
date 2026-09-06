@@ -15,16 +15,23 @@ AI: "Based on the resume, the candidate has worked with FastAPI, Streamlit,
 No hallucination. No generic answers. Every response is anchored to the
 parsed resume.
 
+[![Python](https://img.shields.io/badge/Python-3.x-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-REST%20API-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![Groq](https://img.shields.io/badge/Groq-LLM%20Inference-F55036?style=for-the-badge&logo=groq&logoColor=white)](https://groq.com/)
+[![Pydantic](https://img.shields.io/badge/Pydantic-Schema%20Validation-E92063?style=for-the-badge&logo=pydantic&logoColor=white)](https://docs.pydantic.dev/)
+
+</div>
+
 ---
 
 ## Stack
 
-| Layer | Choice |
-|---|---|
-| API | `FastAPI` + `Uvicorn` |
-| LLM | `Groq` - `openai/gpt-oss-20b` |
-| Schema Validation | `Pydantic` |
-| PDF Parsing | `pypdf` |
+| Layer             | Choice                        |
+| ----------------- | ----------------------------- |
+| API               | `FastAPI` + `Uvicorn`         |
+| LLM               | `Groq` - `openai/gpt-oss-20b` |
+| Schema Validation | `Pydantic`                    |
+| PDF Parsing       | `pypdf`                       |
 
 ---
 
@@ -52,31 +59,31 @@ graph TD
     class E logic;
 ```
 
-##  Features
+## Features
 
-| | |
-|---|---|
-|  **PDF + URL Support** | Extracts raw text from local PDFs or public URLs |
-|  **Schema-Driven Parsing** | Resume is parsed into a fixed Pydantic schema regardless of section headings or formatting |
-|  **Candidate AI** | The LLM answers as the candidate - professional, fact-bound, no invention |
-|  **Live Portfolio Context** | Downloads and caches context directly from the live portfolio website |
-|  **Groq-Powered** | Fast structured-JSON inference via `openai/gpt-oss-20b` |
-
----
-
-##  Tech Stack
-
-| Component | Technology |
-|---|---|
-| API Framework | FastAPI |
-| LLM | Groq - `openai/gpt-oss-20b` |
-| Schema Validation | Pydantic |
-| PDF Parsing | pypdf |
-| Dependency Management | uv |
+|                            |                                                                                            |
+| -------------------------- | ------------------------------------------------------------------------------------------ |
+| **PDF + URL Support**      | Extracts raw text from local PDFs or public URLs                                           |
+| **Schema-Driven Parsing**  | Resume is parsed into a fixed Pydantic schema regardless of section headings or formatting |
+| **Candidate AI**           | The LLM answers as the candidate - professional, fact-bound, no invention                  |
+| **Live Portfolio Context** | Downloads and caches context directly from the live portfolio website                      |
+| **Groq-Powered**           | Fast structured-JSON inference via `openai/gpt-oss-20b`                                    |
 
 ---
 
-##  Project Structure
+## Tech Stack
+
+| Component             | Technology                  |
+| --------------------- | --------------------------- |
+| API Framework         | FastAPI                     |
+| LLM                   | Groq - `openai/gpt-oss-20b` |
+| Schema Validation     | Pydantic                    |
+| PDF Parsing           | pypdf                       |
+| Dependency Management | uv                          |
+
+---
+
+## Project Structure
 
 ```
 Hire-Me-AI/
@@ -90,7 +97,7 @@ Hire-Me-AI/
 
 ---
 
-##  Setup and Installation
+## Setup and Installation
 
 ### Prerequisites
 
@@ -122,8 +129,6 @@ cp .env.example .env
 
 Drop your PDF resume into `backend/` or rely on the environment variables (`RESUME_URL`, `RESUME_GDRIVE_ID`).
 
-
-
 ### 5. Start the server
 
 ```bash
@@ -133,7 +138,7 @@ uv run uvicorn main:app --reload
 
 ---
 
-##  API Reference
+## API Reference
 
 ### `GET /`
 
@@ -148,11 +153,13 @@ Health check.
 Ask a question about the candidate.
 
 **Request body**
+
 ```json
 { "question": "What is this candidate's strongest technical skill?" }
 ```
 
 **Response**
+
 ```json
 {
   "answer": "Based on the resume, the candidate's strongest technical skill is..."
@@ -161,7 +168,7 @@ Ask a question about the candidate.
 
 ---
 
-##  Known Limitations
+## Known Limitations
 
 - The server currently caches the parsed resume globally in memory. If you want to support multiple candidates simultaneously, you'll need session-based caching.
 - Scanned / image-only PDFs with no extractable text will return empty parses; use a text-based PDF.
