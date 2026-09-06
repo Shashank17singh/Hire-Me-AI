@@ -142,11 +142,7 @@ uv run uvicorn main:app --reload
 
 ### `GET /`
 
-Health check.
-
-```json
-{ "message": "Ye home page hai" }
-```
+Serves the interactive chat UI.
 
 ### `POST /chat`
 
