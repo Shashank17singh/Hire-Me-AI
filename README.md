@@ -2,7 +2,7 @@
 
 # Hire-Me-AI - AI-Powered Resume Parser & Chatbot
 
-Architected as a complete end-to-end solution, this is extended from a resume-parsing exercise into a production FastAPI backend that parses a PDF resume into structured data and lets HR
+Engineered a production FastAPI backend extending a resume-parsing exercise to parse PDF resumes into structured data and let HR
 chat with an AI that represents the candidate - grounded only in what the
 resume actually says.
 
