@@ -18,7 +18,7 @@ cached_resume = None
 cached_portfolio = ""
 BASE_DIR = Path(__file__).resolve().parent
 STATIC_DIR = BASE_DIR / "static"
-RESUME_PATH = BASE_DIR / "my_resume.pdf"
+RESUME_PATH = BASE_DIR / "Resume.pdf"
 class TextExtractor(HTMLParser):
     def __init__(self):
         super().__init__()
@@ -54,63 +54,18 @@ def download_portfolio():
         print(f"Portfolio downloaded and cached ({len(cached_portfolio)} chars).")
     except Exception as e:
         print("Failed to download portfolio:", e)
-def fetch_resume_from_url(url: str) -> str:
-    """Fetch resume text from any publicly accessible URL (Google Docs, Notion, GitHub raw, etc.)"""
-    resp = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'}, timeout=20)
-    resp.raise_for_status()
-    content_type = resp.headers.get('Content-Type', '')
-    if 'text/html' in content_type:
-        extractor = TextExtractor()
-        extractor.feed(resp.text)
-        return extractor.get_text()
-    elif 'application/pdf' in content_type or resp.content[:4] == b'%PDF':
-        p = RESUME_PATH
-        p.write_bytes(resp.content)
-        return read_pdf(p)
-    else:
-        return resp.text
 def refresh_cache():
     global cached_resume
     try:
         download_portfolio()
-        # --- Strategy 1: RESUME_URL env var (Google Docs "Publish to web", Notion public page, etc.) ---
-        resume_url = os.getenv("RESUME_URL", "https://docs.google.com/document/d/e/2PACX-1vThRffUcE83s7RNij3h7XpNTYpu2Q90xxncdNfk6-SFcPCWR4lNRG1TeBR9-ZExXw/pub").strip()
-        if resume_url:
-            print(f"Fetching resume from RESUME_URL: {resume_url}")
-            text = fetch_resume_from_url(resume_url)
-            if text and len(text) > 200:
-                cached_resume = parse_resume(text)
-                print(f"Resume fetched live from URL ({len(text)} chars).")
-                return
-            else:
-                print("WARNING: RESUME_URL returned too little content, trying fallbacks.")
-        # --- Strategy 2: Google Drive PDF download (may be blocked on some cloud IPs) ---
-        gdrive_id = os.getenv("RESUME_GDRIVE_ID", "1W-dn895-Z8SC5uT160ZejL5Ij28CsVZP")
-        print("Trying Google Drive download...")
-        session = requests.Session()
-        for url in [
-            f"https://drive.usercontent.google.com/download?id={gdrive_id}&export=download&authuser=0",
-            f"https://drive.google.com/uc?export=download&confirm=t&id={gdrive_id}",
-        ]:
-            try:
-                resp = session.get(url, headers={'User-Agent': 'Mozilla/5.0'}, timeout=30)
-                resp.raise_for_status()
-                if resp.content[:4] == b'%PDF':
-                    RESUME_PATH.write_bytes(resp.content)
-                    text = read_pdf(RESUME_PATH)
-                    cached_resume = parse_resume(text)
-                    print(f"Resume fetched from Google Drive ({len(text)} chars).")
-                    return
-            except Exception as e:
-                print(f"Google Drive URL failed: {e}")
-        # --- Strategy 3: RESUME_TEXT env var (static fallback, set manually on Render) ---
-        resume_text_env = os.getenv("RESUME_TEXT", "").strip()
-        if resume_text_env:
-            print("Using RESUME_TEXT fallback from environment variable.")
-            cached_resume = parse_resume(resume_text_env)
-            return
-        print("WARNING: All resume sources failed. AI will respond without resume context.")
-        cached_resume = None
+        print(f"Fetching resume from local file: {RESUME_PATH}")
+        if RESUME_PATH.exists():
+            text = read_pdf(RESUME_PATH)
+            cached_resume = parse_resume(text)
+            print(f"Resume fetched locally ({len(text)} chars).")
+        else:
+            print("WARNING: Local Resume.pdf not found. AI will respond without resume context.")
+            cached_resume = None
     except Exception as e:
         print(f"Error during refresh_cache: {e}")
         cached_resume = None
