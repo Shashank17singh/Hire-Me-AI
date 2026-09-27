@@ -166,3 +166,10 @@ Ask a question about the candidate.
 
 - The server currently caches the parsed resume globally in memory. If you want to support multiple candidates simultaneously, you'll need session-based caching.
 - Scanned / image-only PDFs with no extractable text will return empty parses; use a text-based PDF.
+
+
+---
+
+## Deployment
+- **API URL:** https://hiremeai-dn64.onrender.com/
+- **Dashboard URL:** https://hiremeai-dn64.onrender.com/
