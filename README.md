@@ -173,3 +173,13 @@ Ask a question about the candidate.
 ## Deployment
 - **API URL:** https://hiremeai-dn64.onrender.com/
 - **Dashboard URL:** https://hiremeai-dn64.onrender.com/
+
+
+--- 
+
+## Deep Codebase Analysis
+
+| File | Purpose / Details |
+|---|---|
+| `backend\main.py` | Hire-Me-AI backend — FastAPI server that parses a PDF resume and lets |
+| `main.py` | Core component logic and implementation details. |
