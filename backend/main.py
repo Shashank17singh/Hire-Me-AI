@@ -22,9 +22,7 @@ load_dotenv()
 
 logger = logging.getLogger(__name__)
 
-# ---------------------------------------------------------------------------
 # Configuration
-# ---------------------------------------------------------------------------
 MODEL = "openai/gpt-oss-20b"
 PORTFOLIO_URL = "https://shashank17singh.github.io"
 
@@ -35,9 +33,7 @@ RESUME_PATH = BASE_DIR / "Resume.pdf"
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
 
-# ---------------------------------------------------------------------------
 # Pydantic schemas
-# ---------------------------------------------------------------------------
 class Experience(BaseModel):
     company: str | None = None
     role: str | None = None
@@ -65,9 +61,7 @@ class ChatRequest(BaseModel):
     question: str
 
 
-# ---------------------------------------------------------------------------
-# HTML → plain text extractor (for the portfolio page)
-# ---------------------------------------------------------------------------
+# HTML to plain text extractor (for the portfolio page)
 class TextExtractor(HTMLParser):
     """Strips HTML to plain text, skipping <script>/<style> blocks."""
 
@@ -98,9 +92,7 @@ class TextExtractor(HTMLParser):
         return "\n".join(self.text_parts)
 
 
-# ---------------------------------------------------------------------------
-# PDF reading + LLM resume parsing
-# ---------------------------------------------------------------------------
+# PDF reading and LLM resume parsing
 def read_pdf(file_path: Path) -> str:
     """Extract text from a PDF file."""
     reader = PdfReader(file_path)
@@ -167,9 +159,7 @@ Rules:
     return response.choices[0].message.content
 
 
-# ---------------------------------------------------------------------------
 # Cache management
-# ---------------------------------------------------------------------------
 _cached_resume: Resume | None = None
 _cached_portfolio: str = ""
 
@@ -210,9 +200,7 @@ def refresh_cache() -> None:
         _cached_resume = None
 
 
-# ---------------------------------------------------------------------------
 # FastAPI application
-# ---------------------------------------------------------------------------
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
     try:
