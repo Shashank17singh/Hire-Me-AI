@@ -167,19 +167,18 @@ Ask a question about the candidate.
 - The server currently caches the parsed resume globally in memory. If you want to support multiple candidates simultaneously, you'll need session-based caching.
 - Scanned / image-only PDFs with no extractable text will return empty parses; use a text-based PDF.
 
-
 ---
 
 ## Deployment
+
 - **API URL:** https://hiremeai-dn64.onrender.com/
 - **Dashboard URL:** https://hiremeai-dn64.onrender.com/
 
-
---- 
+---
 
 ## Deep Codebase Analysis
 
-| File | Purpose / Details |
-|---|---|
+| File              | Purpose / Details                                                     |
+| ----------------- | --------------------------------------------------------------------- |
 | `backend\main.py` | Hire-Me-AI backend — FastAPI server that parses a PDF resume and lets |
-| `main.py` | Core component logic and implementation details. |
+| `main.py`         | Core component logic and implementation details.                      |
