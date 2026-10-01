@@ -93,9 +93,7 @@ def read_pdf(file_path: Path) -> str:
     """Extract text from a PDF file."""
     reader = PdfReader(file_path)
     return "\n".join(
-        page_text
-        for page in reader.pages
-        if (page_text := page.extract_text())
+        page_text for page in reader.pages if (page_text := page.extract_text())
     )
 
 
