@@ -220,7 +220,7 @@ def home():
 @app.post("/chat")
 def chat(request: ChatRequest):
     """Ask a question about the candidate."""
-    global _cached_resume
+    global _cached_resume  # noqa: PLW0602
     if not _cached_resume:
         refresh_cache()
     if not _cached_resume:
