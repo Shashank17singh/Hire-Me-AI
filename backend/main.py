@@ -1,6 +1,6 @@
 """Hire-Me-AI backend — FastAPI server that parses a PDF resume and lets
-HR chat with an AI that represents the candidate, grounded in the parsed
-resume and a cached copy of the live portfolio site."""
+HR chat with an AI that represents the candidate, grounded in the parsed resume and a cached copy of the live portfolio site.
+Architecture note: Uses async context managers for fast startup caching."""
 
 import json
 import logging
