@@ -13,7 +13,13 @@
     />
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
+/* Hallmark · checked: 2026-10-31 · genre: atmospheric (inferred)
+ * fixed: 14 tokens lifted, focus, motion and states added · structural: left for the owner, see the audit
+ * built: the project · redesign: polish · v2.0.0 */
+
       :root {
+  --text-muted: #a3b1c6;
+  --status-online: #34d399;
         --bg-color: #0f172a;
         --chat-bg: #1e1b4b;
         --user-msg: #7c3aed;
@@ -23,7 +29,15 @@
         --accent: #a78bfa;
         --font-family: "DM Sans", sans-serif;
         --heading-font: "Space Grotesk", sans-serif;
-      }
+  --color-black-a10: rgba(0,0,0,0.1);
+  --color-blue-300: #94a3b8;
+  --color-white-a05: rgba(255,255,255,0.05);
+  --color-violet-400-a30: rgba(124,58,237,0.3);
+  --color-blue-600: #475569;
+  --color-violet-200: #a78bfa;
+  --color-black-a00: rgba(0,0,0,0);
+  --color-on-fill: #ffffff;
+}
 
       body {
         margin: 0;
@@ -43,7 +57,7 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 4px 6px -1px var(--color-black-a10);
       }
 
       .header-title {
@@ -56,7 +70,7 @@
 
       .header-subtitle {
         font-size: 0.875rem;
-        color: #94a3b8;
+        color: var(--color-blue-300);
         margin-top: 0.25rem;
       }
 
@@ -107,7 +121,7 @@
 
       .user .message-content {
         background-color: var(--user-msg);
-        color: white;
+        color: var(--color-on-fill);
         border-bottom-right-radius: 0.25rem;
       }
 
@@ -130,7 +144,7 @@
         text-align: left;
       }
       .message-content th {
-        background-color: rgba(255, 255, 255, 0.05);
+        background-color: var(--color-white-a05);
         font-weight: 600;
       }
       .message-content p {
@@ -168,20 +182,19 @@
         color: var(--text-color);
         font-family: var(--font-family);
         font-size: 1rem;
-        outline: none;
         transition: border-color 0.2s;
       }
 
       input[type="text"]:focus {
-        border-color: var(--accent);
-        box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.3);
+        
+        box-shadow: 0 0 0 2px var(--color-violet-400-a30);
       }
 
       button {
         position: absolute;
         right: 0.5rem;
         background-color: var(--user-msg);
-        color: white;
+        color: var(--color-on-fill);
         border: none;
         border-radius: 50%;
         width: 2.5rem;
@@ -208,11 +221,11 @@
       }
 
       .sync-btn:hover {
-        background-color: #475569;
+        background-color: var(--color-blue-600);
       }
 
       button:hover {
-        background-color: #a78bfa;
+        background-color: var(--color-violet-200);
       }
 
       button:active {
@@ -220,7 +233,7 @@
       }
 
       button:disabled {
-        background-color: #475569;
+        background-color: var(--color-blue-600);
         cursor: not-allowed;
       }
 
@@ -236,21 +249,21 @@
       @keyframes dots {
         0%,
         20% {
-          color: rgba(0, 0, 0, 0);
+          color: var(--color-black-a00);
           text-shadow:
-            0.25em 0 0 rgba(0, 0, 0, 0),
-            0.5em 0 0 rgba(0, 0, 0, 0);
+            0.25em 0 0 var(--color-black-a00),
+            0.5em 0 0 var(--color-black-a00);
         }
         40% {
-          color: white;
+          color: var(--color-on-fill);
           text-shadow:
-            0.25em 0 0 rgba(0, 0, 0, 0),
-            0.5em 0 0 rgba(0, 0, 0, 0);
+            0.25em 0 0 var(--color-black-a00),
+            0.5em 0 0 var(--color-black-a00);
         }
         60% {
           text-shadow:
             0.25em 0 0 white,
-            0.5em 0 0 rgba(0, 0, 0, 0);
+            0.5em 0 0 var(--color-black-a00);
         }
         80%,
         100% {
@@ -272,9 +285,70 @@
         border-radius: 4px;
       }
       ::-webkit-scrollbar-thumb:hover {
-        background: #475569;
+        background: var(--color-blue-600);
       }
-    </style>
+
+/* Accessibility states added by the polish pass. */
+:root {
+  --focus-ring: #e2e8f0;
+  --disabled-fill: #2a2f3a;
+  --disabled-ink: #8b93a1;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+html,
+body {
+  overflow-x: clip;
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+summary:focus-visible,
+[tabindex]:focus-visible,
+[role="button"]:focus-visible,
+input:focus-visible + label {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+button:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+button:disabled,
+input:disabled,
+select:disabled,
+textarea:disabled {
+  background: var(--disabled-fill);
+  color: var(--disabled-ink);
+  cursor: not-allowed;
+}
+
+.sync-btn {
+  white-space: nowrap;
+}
+
+input[type="text"] {
+  border-color: var(--accent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+</style>
   </head>
   <body>
     <header>
@@ -285,14 +359,14 @@
       <div
         style="
           font-size: 0.85rem;
-          color: #64748b;
+          color: var(--text-muted);
           display: flex;
           align-items: center;
           gap: 1rem;
         "
       >
         <button id="sync-btn" class="sync-btn">
-          <svg
+          <svg aria-hidden="true"
             width="12"
             height="12"
             viewBox="0 0 24 24"
@@ -317,7 +391,7 @@
               display: inline-block;
               width: 8px;
               height: 8px;
-              background-color: #10b981;
+              background-color: var(--status-online);
               border-radius: 50%;
             "
           ></span>
@@ -338,14 +412,14 @@
 
     <div class="input-container">
       <div class="input-wrapper">
-        <input
+        <input aria-label="Ask about technical skills, experience, projects"
           type="text"
           id="user-input"
           placeholder="Ask about technical skills, experience, projects..."
           autocomplete="off"
         />
         <button id="send-btn">
-          <svg
+          <svg aria-hidden="true"
             width="20"
             height="20"
             viewBox="0 0 24 24"
