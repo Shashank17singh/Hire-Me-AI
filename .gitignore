@@ -1,2 +1,8 @@
 ﻿.env
 __pycache__/
+
+# Local AI assistant configuration
+.agents/
+
+# Editor settings
+.vscode/
