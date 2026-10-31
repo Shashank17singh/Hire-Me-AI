@@ -1,0 +1,25 @@
+name: Render Active
+
+on:
+  schedule:
+    # Every 10 minutes from 08:30 to 18:30 IST, about 310 hours a month.
+    # Render's free services share 750 hours a month and all stop if they run out,
+    # so this deliberately does not run around the clock.
+    - cron: '5/10 3-12 * * *'
+  workflow_dispatch:
+
+permissions:
+  actions: write
+
+jobs:
+  keep-active:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Keep the service awake
+        run: curl --fail --silent --show-error --output /dev/null --retry 2 --retry-delay 20 --max-time 90 https://hiremeai-dn64.onrender.com/
+
+      # GitHub disables scheduled workflows after 60 days without repository activity.
+      - name: Keep this schedule enabled
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api --method PUT "repos/${{ github.repository }}/actions/workflows/render_active.yaml/enable"
