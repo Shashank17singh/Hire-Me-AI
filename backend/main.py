@@ -5,6 +5,7 @@ Architecture note: Uses async context managers for fast startup caching."""
 import json
 import logging
 import os
+import time
 from contextlib import asynccontextmanager
 from html.parser import HTMLParser
 from pathlib import Path
@@ -15,7 +16,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from groq import Groq
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from pypdf import PdfReader
 
 load_dotenv()
@@ -24,6 +25,8 @@ logger = logging.getLogger(__name__)
 
 MODEL = "openai/gpt-oss-20b"
 PORTFOLIO_URL = "https://shashank17singh.github.io"
+REFRESH_COOLDOWN_SECONDS = 60
+_last_refresh = float("-inf")
 
 BASE_DIR = Path(__file__).resolve().parent
 STATIC_DIR = BASE_DIR / "static"
@@ -56,7 +59,7 @@ RESUME_SCHEMA = Resume.model_json_schema()
 
 
 class ChatRequest(BaseModel):
-    question: str
+    question: str = Field(min_length=1, max_length=1000)
 
 
 class TextExtractor(HTMLParser):
@@ -236,7 +239,14 @@ def chat(request: ChatRequest):
 
 @app.post("/refresh")
 def refresh():
-    """Force a cache refresh of resume and portfolio data."""
+    """Force a cache refresh of resume and portfolio data, at most once a minute."""
+    global _last_refresh
+    now = time.monotonic()
+    if now - _last_refresh < REFRESH_COOLDOWN_SECONDS:
+        raise HTTPException(
+            status_code=429, detail="Refreshed recently, try again later."
+        )
+    _last_refresh = now
     refresh_cache()
     if not _cached_resume:
         raise HTTPException(
