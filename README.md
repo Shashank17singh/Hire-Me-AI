@@ -2,7 +2,7 @@
 
 # Hire-Me-AI - AI-Powered Resume Parser & Chatbot
 
-**Engineered a production FastAPI backend extending a resume-parsing exercise to parse PDF resumes into structured data and let HR chat with an AI that represents the candidate - grounded only in what the resume actually says.**
+**A FastAPI backend that parses a PDF resume into structured data and lets recruiters chat with an AI that represents the candidate, grounded only in what the resume says.**
 
 ```
 HR: "What frameworks has this candidate worked with?"
@@ -10,8 +10,7 @@ AI: "Based on the resume, the candidate has worked with FastAPI, Streamlit,
      and Flask across their internship and project experience."
 ```
 
-No hallucination. No generic answers. Every response is anchored to the
-parsed resume.
+Every response is anchored to the parsed resume, which keeps answers specific and avoids hallucinations.
 
 [![Python](https://img.shields.io/badge/Python-3.x-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-REST%20API-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
@@ -19,17 +18,6 @@ parsed resume.
 [![Pydantic](https://img.shields.io/badge/Pydantic-Schema%20Validation-E92063?style=for-the-badge&logo=pydantic&logoColor=white)](https://docs.pydantic.dev/)
 
 </div>
-
----
-
-## Stack
-
-| Layer             | Choice                        |
-| ----------------- | ----------------------------- |
-| API               | `FastAPI` + `Uvicorn`         |
-| LLM               | `Groq` - `openai/gpt-oss-20b` |
-| Schema Validation | `Pydantic`                    |
-| PDF Parsing       | `pypdf`                       |
 
 ---
 
