@@ -5,14 +5,16 @@ Architecture note: Uses async context managers for fast startup caching."""
 import json
 import logging
 import os
+import threading
 import time
+from collections import deque
 from contextlib import asynccontextmanager
 from html.parser import HTMLParser
 from pathlib import Path
 
 import requests
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from groq import Groq
@@ -26,6 +28,9 @@ logger = logging.getLogger(__name__)
 MODEL = "openai/gpt-oss-20b"
 PORTFOLIO_URL = "https://shashank17singh.github.io"
 REFRESH_COOLDOWN_SECONDS = 60
+CHAT_LIMIT_PER_CLIENT = 10
+CHAT_LIMIT_OVERALL = 30
+CHAT_LIMIT_WINDOW_SECONDS = 60
 _last_refresh = float("-inf")
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -205,6 +210,48 @@ async def lifespan(_app: FastAPI):
     yield
 
 
+class RateLimiter:
+    """Sliding-window limits for one client and for everyone together.
+
+    X-Forwarded-For can be forged, so the client limit is only a courtesy. The overall
+    limit is what protects the LLM quota.
+    """
+
+    def __init__(self, per_client: int, overall: int, window_seconds: float) -> None:
+        self.per_client = per_client
+        self.overall = overall
+        self.window_seconds = window_seconds
+        self._hits: deque[tuple[float, str]] = deque()
+        self._lock = threading.Lock()
+
+    def allow(self, client: str, now: float | None = None) -> bool:
+        now = time.monotonic() if now is None else now
+        with self._lock:
+            while self._hits and now - self._hits[0][0] >= self.window_seconds:
+                self._hits.popleft()
+            if len(self._hits) >= self.overall:
+                return False
+            if sum(hit == client for _, hit in self._hits) >= self.per_client:
+                return False
+            self._hits.append((now, client))
+            return True
+
+
+chat_limiter = RateLimiter(
+    CHAT_LIMIT_PER_CLIENT, CHAT_LIMIT_OVERALL, CHAT_LIMIT_WINDOW_SECONDS
+)
+
+
+def limit_chat(request: Request) -> None:
+    """Reject the request when the chat limits are used up."""
+    forwarded = request.headers.get("x-forwarded-for", "").split(",")[0].strip()
+    client = forwarded or (request.client.host if request.client else "unknown")
+    if not chat_limiter.allow(client):
+        raise HTTPException(
+            status_code=429, detail="Too many questions, please try again in a minute."
+        )
+
+
 app = FastAPI(
     title="Hire-Me-AI",
     description="Chat with an AI that represents a job candidate.",
@@ -220,7 +267,7 @@ def home():
     return FileResponse(str(STATIC_DIR / "index.html"))
 
 
-@app.post("/chat")
+@app.post("/chat", dependencies=[Depends(limit_chat)])
 def chat(request: ChatRequest):
     """Ask a question about the candidate."""
     global _cached_resume  # noqa: PLW0602
