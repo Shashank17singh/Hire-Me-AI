@@ -11,7 +11,11 @@
       href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Space+Grotesk:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/marked@15.0.12/marked.min.js"
+      integrity="sha384-948ahk4ZmxYVYOc+rxN1H2gM1EJ2Duhp7uHtZ4WSLkV4Vtx5MUqnV+l7u9B+jFv+"
+      crossorigin="anonymous"
+    ></script>
     <style>
 /* Hallmark · checked: 2026-10-31 · genre: atmospheric (inferred)
  * fixed: 14 tokens lifted, focus, motion and states added · structural: left for the owner, see the audit
@@ -486,6 +490,11 @@ input[type="text"] {
             body: JSON.stringify({ question: text }),
           });
 
+          if (response.status === 429) {
+            loadingMsg.innerText =
+              "That's a lot of questions at once. Please try again in a minute.";
+            return;
+          }
           if (!response.ok) {
             throw new Error("Server returned " + response.status);
           }
