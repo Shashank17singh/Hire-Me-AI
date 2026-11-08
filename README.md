@@ -1,8 +1,6 @@
-<div align="center">
+# Hire Me AI
 
-# Hire-Me-AI - AI-Powered Resume Parser & Chatbot
-
-**A FastAPI backend that parses a PDF resume into structured data and lets recruiters chat with an AI that represents the candidate, grounded only in what the resume says.**
+A FastAPI backend that parses a PDF resume into structured data and lets recruiters chat with an AI that represents the candidate, grounded only in what the resume says.
 
 ```
 HR: "What frameworks has this candidate worked with?"
@@ -11,15 +9,6 @@ AI: "Based on the resume, the candidate has worked with FastAPI, Streamlit,
 ```
 
 Every response is anchored to the parsed resume, which keeps answers specific and avoids hallucinations.
-
-[![Python](https://img.shields.io/badge/Python-3.x-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-REST%20API-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
-[![Groq](https://img.shields.io/badge/Groq-LLM%20Inference-F55036?style=for-the-badge&logo=groq&logoColor=white)](https://groq.com/)
-[![Pydantic](https://img.shields.io/badge/Pydantic-Schema%20Validation-E92063?style=for-the-badge&logo=pydantic&logoColor=white)](https://docs.pydantic.dev/)
-
-</div>
-
----
 
 ## How It Works
 
