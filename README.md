@@ -1,6 +1,15 @@
 # Hire Me AI
 
-A FastAPI backend that parses a PDF resume into structured data and lets recruiters chat with an AI that represents the candidate, grounded only in what the resume says.
+A FastAPI backend that parses a PDF resume into structured data and lets recruiters chat with an AI that represents the candidate, grounded strictly in the parsed resume.
+
+> **Live Deployments:**
+> * **Interactive API & Chat UI:** [hiremeai-dn64.onrender.com](https://hiremeai-dn64.onrender.com/)
+
+---
+
+## Overview
+
+Hire Me AI turns candidate resumes into an interactive conversational interface for technical recruiters. Instead of manually skimming multi-page documents, hiring teams can ask natural-language questions and receive answers strictly grounded in the candidate's verified skills, experience, and projects.
 
 ```
 HR: "What frameworks has this candidate worked with?"
@@ -8,9 +17,11 @@ AI: "Based on the resume, the candidate has worked with FastAPI, Streamlit,
      and Flask across their internship and project experience."
 ```
 
-Every response is anchored to the parsed resume, which keeps answers specific and avoids hallucinations.
+Every response is anchored to the parsed resume, preventing hallucinations and keeping answers verifiable.
 
-## How It Works
+---
+
+## Architecture Overview
 
 ```mermaid
 graph TD
@@ -34,27 +45,30 @@ graph TD
     class E logic;
 ```
 
+---
+
 ## Features
 
-|                            |                                                                                            |
-| -------------------------- | ------------------------------------------------------------------------------------------ |
-| **PDF + URL Support**      | Extracts raw text from local PDFs or public URLs                                           |
-| **Schema-Driven Parsing**  | Resume is parsed into a fixed Pydantic schema regardless of section headings or formatting |
-| **Candidate AI**           | The LLM answers as the candidate - professional, fact-bound, no invention                  |
-| **Live Portfolio Context** | Downloads and caches context directly from the live portfolio website                      |
-| **Groq-Powered**           | Fast structured-JSON inference via `openai/gpt-oss-20b`                                    |
+| Feature | Description |
+| ------- | ----------- |
+| **PDF + URL Support** | Extracts raw text from local PDFs or public URLs |
+| **Schema-Driven Parsing** | Resume is parsed into a fixed Pydantic schema regardless of section headings or formatting |
+| **Candidate AI** | The LLM answers as the candidate - professional, fact-bound, and grounded |
+| **Live Portfolio Context** | Downloads and caches context directly from the live portfolio website |
+| **Groq-Powered** | Fast structured-JSON inference via Groq models |
 
 ---
 
-## Tech Stack
+## Technology Stack
 
-| Component             | Technology                  |
-| --------------------- | --------------------------- |
-| API Framework         | FastAPI                     |
-| LLM                   | Groq - `openai/gpt-oss-20b` |
-| Schema Validation     | Pydantic                    |
-| PDF Parsing           | pypdf                       |
-| Dependency Management | uv                          |
+| Component | Technology |
+| --------- | ---------- |
+| API Framework | FastAPI |
+| LLM Inference | Groq |
+| Schema Validation | Pydantic |
+| Document Extraction | pypdf, python-docx |
+| Package & Environment Management | uv |
+| Testing | pytest |
 
 ---
 
@@ -63,10 +77,13 @@ graph TD
 ```
 Hire-Me-AI/
 ├── backend/
-│   ├── main.py          # FastAPI app - resume parsing + /chat endpoint
-│   └── my_resume.pdf    # Drop your resume here
-├── main.py              # Entry point
-├── pyproject.toml
+│   ├── main.py          # FastAPI app - resume parsing and /chat endpoint
+│   └── my_resume.pdf    # Local candidate resume file
+├── tests/
+│   ├── conftest.py      # Test configuration
+│   └── test_backend.py  # Unit tests for text extraction and chat validation
+├── Dockerfile           # Container build specification
+├── pyproject.toml       # Project metadata and dependencies
 └── README.md
 ```
 
@@ -93,22 +110,22 @@ cd Hire-Me-AI
 uv sync
 ```
 
-### 3. Set your Groq API key
+### 3. Configure environment variables
 
 ```bash
 cp .env.example .env
-# then edit .env and add: GROQ_API_KEY=your_api_key_here
+# Edit .env and supply your credentials:
+# GROQ_API_KEY=your_api_key_here
 ```
 
-### 4. Add your resume
+### 4. Provide resume file
 
-Drop your PDF resume into `backend/` or rely on the environment variables (`RESUME_URL`, `RESUME_GDRIVE_ID`).
+Drop your PDF resume into `backend/` or set the `RESUME_URL` / `RESUME_GDRIVE_ID` environment variables.
 
 ### 5. Start the server
 
 ```bash
-cd backend
-uv run uvicorn main:app --reload
+uv run uvicorn backend.main:app --reload
 ```
 
 ---
@@ -139,18 +156,36 @@ Ask a question about the candidate.
 
 ---
 
-## Known Limitations
+## Running the Tests
 
-- The server currently caches the parsed resume globally in memory. If you want to support multiple candidates simultaneously, you'll need session-based caching.
-- Scanned / image-only PDFs with no extractable text will return empty parses; use a text-based PDF.
+Execute the unit test suite:
+
+```bash
+uv run pytest
+```
 
 ---
 
 ## Deployment
 
-- **API URL:** https://hiremeai-dn64.onrender.com/
-- **Dashboard URL:** https://hiremeai-dn64.onrender.com/
+The service is packaged as a containerized web application:
+
+```bash
+docker build -t hire-me-ai .
+docker run -p 8000:8000 -e GROQ_API_KEY=your_key hire-me-ai
+```
+
+Live deployment is hosted on Render at [hiremeai-dn64.onrender.com](https://hiremeai-dn64.onrender.com/).
 
 ---
 
+## Known Limitations
 
+- The server caches the parsed resume in memory. Supporting multi-user concurrency with different resumes requires session-based cache partitioning.
+- Scanned or image-only PDFs without an OCR layer will yield empty text extraction; text-based PDFs are required.
+
+---
+
+## License
+
+This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
