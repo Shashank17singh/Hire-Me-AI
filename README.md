@@ -1,7 +1,3 @@
-<p align="center">
-  <img src="logo.svg" width="72" height="72" alt="Hire Me AI Logo" />
-</p>
-
 # Hire Me AI
 
 A FastAPI backend that parses a PDF resume into structured data and lets recruiters chat with an AI that represents the candidate, grounded strictly in the parsed resume.
