@@ -179,10 +179,10 @@ Live deployment is hosted on Render at [hiremeai-dn64.onrender.com](https://hire
 
 ---
 
-## Known Limitations
+## Operational Considerations & Limitations
 
-- The server caches the parsed resume in memory. Supporting multi-user concurrency with different resumes requires session-based cache partitioning.
-- Scanned or image-only PDFs without an OCR layer will yield empty text extraction; text-based PDFs are required.
+- **Session Caching**: Extracted candidate profiles are cached in memory for rapid interactive querying; multi-tenant deployments require distributed Redis session stores.
+- **PDF Extraction**: Ingestion assumes standard PDF text layers; image-only or scanned resumes require pre-ingestion OCR extraction.
 
 ---
 
